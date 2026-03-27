@@ -1,102 +1,111 @@
-# 🔍 HogQL Agent
+# 🔍 Agentic HogQL: Intelligent Product Analytics
 
-> An autonomous AI agent that translates natural language into HogQL, executes against ClickHouse, and self-corrects errors — streamed in real-time.
+> An autonomous, schema-aware AI agent that translates natural language into HogQL (PostHog's SQL), executes it against ClickHouse, and self-corrects based on real-time feedback — all streamed via a live "Chain-of-Thought" UI.
+
+![Agentic HogQL Demo](https://img.shields.io/badge/Model-NVIDIA_GPT--OSS--120B-76B900?style=for-the-badge&logo=nvidia)
+![Database-ClickHouse-FFEB3B?style=for-the-badge&logo=clickhouse&logoColor=black](https://img.shields.io/badge/Database-ClickHouse-FFEB3B?style=for-the-badge&logo=clickhouse&logoColor=black)
+![Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black](https://img.shields.io/badge/Frontend-React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 
 ---
 
-## Architecture
+## 🚀 Key Features
 
+### 1. **Autonomous Agentic Loop**
+Unlike simple "text-to-SQL" scripts, this system uses a custom `while` loop orchestration (no heavy frameworks like LangChain). The agent:
+- **Discovers**: Lists all available tables and calculates row counts.
+- **Inspects**: Examines specific column names, data types, and 3 sample rows.
+- **Refines**: If a query fails (syntax, wrong column), it reads the ClickHouse error and **self-corrects** in the next iteration.
+
+### 2. **Live Reasoning Stream (SSE)**
+Watch the agent's brain in action. Every step — including its internal **Chain-of-Thought**, tool calls, and data results — is streamed to the UI in real-time using Server-Sent Events.
+
+### 3. **HogQL Specialized**
+The system is pre-configured with the specific syntax rules and functions for PostHog's **HogQL**, ensuring accurate queries for complex time-series analytics.
+
+### 4. **Production Data Persistence**
+Includes a local ClickHouse (v23.12) instance initialized with **10,000+ mock records** (events, persons, sessions). Data is stored in a named Docker volume (`clickhouse_data`), ensuring your work persists across restarts.
+
+---
+
+## 🛠️ Tech Stack
+
+- **LLM**: NVIDIA NIM `openai/gpt-oss-120b` (Deep Reasoning)
+- **Backend**: Python 3.11 + FastAPI (Asynchronous execution)
+- **Database**: ClickHouse (Distributed, OLAP storage)
+- **Frontend**: React 18 + Vite + Tailwind CSS (Premium Dark Mode)
+- **Streaming**: Server-Sent Events (SSE) for low-latency feedback
+
+---
+
+## 📋 Architecture
+
+```mermaid
+graph TD
+    A[User Query] --> B[React Dashboard]
+    B -->|POST /api/query/stream| C[FastAPI Backend]
+    C --> D[HogQLAgent Loop]
+    D -->|Step 1: Discover| E[Schema Inspector]
+    D -->|Step 2: Reason| F[NVIDIA GPT-OSS-120B]
+    D -->|Step 3: Execute| G[ClickHouse Executor]
+    G -->|Error Found| D
+    G -->|Success| H[Live Stream to UI]
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                         BROWSER (React + Vite)                      │
-│  ┌──────────┐   ┌──────────────┐   ┌─────────────────────────────┐  │
-│  │ QueryInput│──▶│ useQueryStream│──▶│ AgentStream / ResultsTable │  │
-│  └──────────┘   │   (SSE)       │   └─────────────────────────────┘  │
-│                 └──────┬───────┘                                    │
-└────────────────────────┼────────────────────────────────────────────┘
-                         │ POST /api/query/stream
-                         ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                    BACKEND (FastAPI + Python)                        │
-│  ┌─────────────────────────────────────────┐                        │
-│  │           HogQLAgent (while loop)       │                        │
-│  │  ┌──────────┐  ┌──────────────────────┐ │  ┌──────────────────┐  │
-│  │  │ LLM Call  │  │  Tool Execution      │ │  │  Schema Inspector│  │
-│  │  │ (NVIDIA   │──│  • execute_hogql     │─│──│  • list_tables   │  │
-│  │  │  API)     │  │  • inspect_schema    │ │  │  • get_schema    │  │
-│  │  └──────────┘  │  • get_tables        │ │  └────────┬─────────┘  │
-│  │                └──────────────────────┘ │           │            │
-│  └─────────────────────────────────────────┘           │            │
-└─────────────────────────────────────────────────────────┼────────────┘
-                                                         │
-                         ┌───────────────────────────────┘
-                         ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│               CLICKHOUSE (Analytics Database)                       │
-│   ┌──────────┐   ┌──────────┐   ┌──────────┐                       │
-│   │  events  │   │ persons  │   │ sessions │                       │
-│   │ (10,000) │   │  (200)   │   │  (500)   │                       │
-│   └──────────┘   └──────────┘   └──────────┘                       │
-└──────────────────────────────────────────────────────────────────────┘
-```
 
-## Features
+---
 
-- **Natural Language to HogQL** — Ask analytics questions in plain English
-- **Autonomous Error Recovery** — Agent inspects schema, reads errors, and retries automatically
-- **Real-Time Streaming** — Watch the agent think, call tools, and correct mistakes via SSE
-- **Schema-Aware** — Agent discovers tables and columns before writing queries
-- **Read-Only Safety** — All queries are validated to prevent any data modification
-- **Beautiful Dark UI** — Professional React interface with live execution visualization
-- **No Agent Frameworks** — Custom while-loop orchestration, no LangChain or similar dependencies
-- **Mock Data Included** — 10,000 events, 200 persons, 500 sessions ready to query
+## ⚡ Quick Start
 
-## Quick Start
+### 1. Prerequisites
+Ensure you have **Docker** and **Docker Compose** installed.
 
-### 1. Clone the repository
+### 2. Environment Setup
+Clone the repo and create your `.env` file from the example:
 
 ```bash
 git clone https://github.com/NITIN9181/Agentic-Text-to-HogQL-Execution.git
 cd Agentic-Text-to-HogQL-Execution
-```
-
-### 2. Set up environment
-
-```bash
 cp .env.example .env
-# Edit .env and add your NVIDIA API key:
-# NVIDIA_API_KEY=nvapi-your-key-here
 ```
 
-### 3. Run with Docker Compose
+Add your **NVIDIA API Key** to `.env`:
+```env
+NVIDIA_API_KEY=nvapi-your-secret-key
+```
+
+### 3. Launch the System
+Start all services (Backend, Frontend, ClickHouse):
 
 ```bash
 docker-compose up --build
 ```
 
-### 4. Open the app
+### 4. Access the App
+- **Frontend**: [http://localhost:5173](http://localhost:5173)
+- **Backend API**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ClickHouse HTTP**: [http://localhost:8123](http://localhost:8123)
 
-Navigate to **http://localhost:5173**
+---
 
-## How It Works
+## 🔍 Example Queries to Try
 
-1. **User submits** a natural language question (e.g., "How many pageviews in the last 7 days?")
-2. **Backend creates** an agent with conversation history and tool definitions
-3. **Agent loop begins** — the LLM is called with tools available:
-   - `get_available_tables` — discovers what tables exist
-   - `inspect_schema` — examines column names, types, and sample data
-   - `execute_hogql` — runs a HogQL SELECT query
-4. **If a query fails**, the error message is fed back to the LLM along with suggestions
-5. **The agent retries** with a corrected query (up to 10 iterations)
-6. **Every step is streamed** to the frontend via Server-Sent Events in real-time
-7. **Final results** are displayed in a formatted data table
+- *"Show me the total number of pageview events per day for the last month."*
+- *"Count the top 5 most frequent event types and their distinct user counts."*
+- *"Identify the unique browsers users are using based on event properties."*
+- *"Which personas have executed 'purchase' events more than 5 times?"*
 
-## Example Queries
+---
 
-| Question | What it does |
-|----------|-------------|
-| "Count events by type in the last 7 days" | Groups events by name with date filter |
-| "Show daily active users for the past month" | Counts distinct users per day |
+## 🛡️ Security & Read-Only Access
+The system is built with a **"Trust but Verify"** security model:
+1. **Tool-Level Blocking**: The `ClickHouseExecutor` rejects any query containing DDL or DML keywords (`DROP`, `DELETE`, `INSERT`, `ALTER`, etc.).
+2. **Read-Only Connection**: The backend connects as a restricted user by default.
+3. **Internal Validation**: Queries are parsed and validated against the discovered schema before execution.
+
+---
+
+## 📄 License
+MIT © [NITIN9181](https://github.com/NITIN9181)
+rs for the past month" | Counts distinct users per day |
 | "Which pages have the most pageviews?" | Extracts URL from properties, ranks by count |
 | "Compare free vs pro user activity" | Joins events with persons, groups by plan |
 | "What's the average session duration?" | Aggregates session metrics |

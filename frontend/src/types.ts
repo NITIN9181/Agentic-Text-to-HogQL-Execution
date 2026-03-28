@@ -91,4 +91,6 @@ export interface QueryState {
   events: AgentEvent[];
   finalResult: FinalResultEvent | null;
   error: string | null;
+  lastQuery?: string;
+  lastIteration?: number;
 }

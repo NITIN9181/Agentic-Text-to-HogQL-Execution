@@ -1,4 +1,11 @@
 import { useState, KeyboardEvent } from 'react';
+import { Play, Square, Sparkles } from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface QueryInputProps {
   onSubmit: (query: string) => void;
@@ -7,10 +14,9 @@ interface QueryInputProps {
 }
 
 const EXAMPLE_QUERIES = [
-  'Count events by type in the last 7 days',
-  'Show daily active users for the past month',
-  'Which pages have the most pageviews?',
-  'Compare free vs pro user activity',
+  '7-day retention for mobile users',
+  'Monthly active users trend',
+  'Top 10 converted pages',
 ];
 
 export function QueryInput({ onSubmit, isExecuting, onStop }: QueryInputProps) {
@@ -31,76 +37,84 @@ export function QueryInput({ onSubmit, isExecuting, onStop }: QueryInputProps) {
   };
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-2xl shadow-black/20">
-      <h2 className="text-lg font-semibold text-gray-100 mb-1">Ask a Question</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Describe what analytics data you&apos;re looking for in natural language
-      </p>
-
-      <textarea
-        id="query-input"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="How many pageviews happened in the last 7 days?&#10;Show retention of users who experienced payment errors"
-        className="w-full h-28 px-4 py-3 bg-gray-950 border border-gray-700/50 rounded-lg text-gray-100 placeholder-gray-600 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200"
-        disabled={isExecuting}
-      />
-
-      <div className="flex items-center gap-3 mt-4">
-        <button
-          id="execute-button"
-          onClick={handleSubmit}
-          disabled={isExecuting || !query.trim()}
-          className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm font-medium rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 flex items-center gap-2"
-        >
-          {isExecuting ? (
-            <>
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              Executing...
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Execute Query
-            </>
-          )}
-        </button>
-
-        {isExecuting && (
-          <button
-            id="stop-button"
-            onClick={onStop}
-            className="px-6 py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-sm font-medium rounded-lg border border-red-500/30 transition-all duration-200 flex items-center gap-2"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-            </svg>
-            Stop
-          </button>
-        )}
+    <div className="dashboard-card bg-[#111118] flex flex-col h-full border-white/5 shadow-2xl shadow-indigo-500/5 transition-all hover:border-white/10">
+      <div className="p-4 border-b border-white/5">
+        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+          <Sparkles size={14} className="text-indigo-400" />
+          Describe your analytical query...
+        </h3>
       </div>
 
-      {/* Example queries */}
-      <div className="mt-4 pt-4 border-t border-gray-800/50">
-        <p className="text-xs text-gray-600 mb-2 font-medium">Try an example:</p>
-        <div className="flex flex-wrap gap-2">
-          {EXAMPLE_QUERIES.map((example) => (
+      <div className="p-4 flex flex-col flex-1 gap-4">
+        <div className="relative flex-1 min-h-[140px]">
+          <textarea
+            id="query-input"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="e.g., Calculate the 7-day retention rate for users who triggered 'App Error: 500' sequentially within a 3-hour window..."
+            className="w-full h-full p-4 bg-black/40 border border-white/5 rounded-xl text-indigo-100 placeholder-gray-600 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/30 transition-all duration-300 font-medium leading-relaxed"
+            disabled={isExecuting}
+          />
+        </div>
+
+        <div className="flex items-center justify-between mt-auto">
+          <div className="flex gap-2">
             <button
-              key={example}
-              onClick={() => setQuery(example)}
-              disabled={isExecuting}
-              className="px-3 py-1.5 text-xs bg-gray-800/50 hover:bg-gray-800 text-gray-400 hover:text-gray-200 rounded-lg border border-gray-700/30 hover:border-gray-600/50 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              id="execute-button"
+              onClick={handleSubmit}
+              disabled={isExecuting || !query.trim()}
+              className={cn(
+                "group px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all duration-300",
+                isExecuting || !query.trim()
+                  ? "bg-gray-800 text-gray-600 cursor-not-allowed border border-white/5"
+                  : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 active:scale-95 border border-indigo-400/20"
+              )}
             >
-              {example}
+              {isExecuting ? (
+                <div className="flex items-center gap-2">
+                   <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                   Thinking...
+                </div>
+              ) : (
+                <>
+                  <Play size={14} fill="currentColor" className="group-hover:translate-x-0.5 transition-transform" />
+                  Execute
+                </>
+              )}
             </button>
-          ))}
+
+            {isExecuting && (
+              <button
+                id="stop-button"
+                onClick={onStop}
+                className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-black uppercase tracking-widest rounded-xl border border-red-500/20 transition-all active:scale-95 flex items-center gap-2"
+              >
+                <Square size={13} fill="currentColor" />
+                Clear
+              </button>
+            )}
+            
+            {!isExecuting && query.trim() && (
+              <button
+                onClick={() => setQuery('')}
+                className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-gray-200 text-xs font-black uppercase tracking-widest rounded-xl border border-white/5 transition-all"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="hidden xl:flex items-center gap-1.5 opacity-50">
+             {EXAMPLE_QUERIES.map((ex, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => setQuery(ex)}
+                  className="w-2 h-2 rounded-full bg-gray-600 hover:bg-indigo-500 hover:scale-125 transition-all"
+                  title={ex} 
+                />
+             ))}
+          </div>
         </div>
       </div>
     </div>

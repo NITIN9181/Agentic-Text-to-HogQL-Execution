@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-onyx: #0d0d12;
+  --bg-card: #16161e;
+  --bg-card-border: rgba(255, 255, 255, 0.08);
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --secondary: #8b5cf6;
+  --accent: #f59e0b;
+  --success: #10b981;
+  --error: #ef4444;
+  --text-dim: #94a3b8;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -9,47 +22,63 @@
 }
 
 body {
-  @apply bg-gray-950 text-gray-100;
+  @apply bg-[#0d0d12] text-gray-100;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 code, pre, .font-mono {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - Hidden but scrollable for sleek look where needed */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(17, 24, 39, 0.5);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(75, 85, 99, 0.5);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.7);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Glow animation */
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(99, 102, 241, 0.3),
-                0 0 10px rgba(99, 102, 241, 0.1);
-  }
-  50% {
-    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5),
-                0 0 20px rgba(99, 102, 241, 0.2);
-  }
+/* Utility Classes */
+.glass-panel {
+  @apply bg-[#16161e] border border-white/5 rounded-2xl shadow-xl backdrop-blur-md;
 }
 
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
+.dashboard-card {
+  @apply bg-[#111118] border border-white/5 rounded-xl overflow-hidden;
+}
+
+.status-badge {
+  @apply px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
 }

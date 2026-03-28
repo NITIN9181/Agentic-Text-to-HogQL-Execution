@@ -68,3 +68,31 @@ class SchemaInspector:
             "sample_rows": sample_rows,
             "total_rows": total_rows,
         }
+
+    async def get_full_schema(self) -> list[dict[str, Any]]:
+        """Fetch all tables and their columns in a single efficient query."""
+        query = """
+            SELECT 
+                t.name as table_name,
+                t.engine,
+                t.total_rows,
+                groupArray(tuple(c.name, c.type)) as columns
+            FROM system.tables t
+            JOIN system.columns c ON t.name = c.table AND t.database = c.database
+            WHERE t.database = currentDatabase()
+              AND t.name NOT LIKE '.%'
+            GROUP BY t.name, t.engine, t.total_rows
+            ORDER BY t.name
+        """
+        result = await self.executor.execute(query)
+        
+        formatted_tables = []
+        for row in result["data"]:
+            formatted_tables.append({
+                "table_name": row["table_name"],
+                "engine": row["engine"],
+                "total_rows": row["total_rows"],
+                "columns": [{"name": c[0], "type": c[1]} for c in row["columns"]]
+            })
+            
+        return formatted_tables

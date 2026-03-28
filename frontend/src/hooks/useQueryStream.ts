@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { AgentEvent, FinalResultEvent, QueryState, MaxIterationsEvent } from '../types';
+import { AgentEvent, FinalResultEvent, QueryState, MaxIterationsEvent, ThoughtEvent, IterationStartEvent } from '../types';
 
 export function useQueryStream() {
   const [state, setState] = useState<QueryState>({
@@ -18,6 +18,8 @@ export function useQueryStream() {
       events: [],
       finalResult: null,
       error: null,
+      lastQuery: undefined,
+      lastIteration: undefined,
     });
 
     abortControllerRef.current = new AbortController();
@@ -75,8 +77,13 @@ export function useQueryStream() {
                   events: updatedEvents,
                 };
 
+                if (event.type === 'iteration_start') {
+                  newState.lastIteration = (event as IterationStartEvent).iteration;
+                }
+
                 if (event.type === 'final_result') {
                   newState.finalResult = event as FinalResultEvent;
+                  newState.lastQuery = (event as FinalResultEvent).query;
                   newState.isExecuting = false;
                 }
 

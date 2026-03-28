@@ -92,6 +92,15 @@ async def list_tables() -> dict:
     return {"tables": tables}
 
 
+@router.get("/api/schema/full")
+async def get_full_schema() -> dict:
+    """Get complete schema (all tables and columns) for the tree browser."""
+    executor = _get_executor()
+    inspector = SchemaInspector(executor)
+    schema = await inspector.get_full_schema()
+    return {"tables": schema}
+
+
 @router.get("/api/schema/tables/{table_name}")
 async def get_table_schema(table_name: str) -> dict:
     """Get detailed schema for a specific table."""

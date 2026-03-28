@@ -1,54 +1,32 @@
 import { FinalResultEvent } from '../types';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface ResultsTableProps {
-  result: FinalResultEvent;
+  result: {
+    data: any[];
+    columns: string[];
+    rows: number;
+  };
 }
 
 export function ResultsTable({ result }: ResultsTableProps) {
+  if (!result || result.rows === 0) return null;
+
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl shadow-black/20">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-800/50 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-green-400 flex items-center gap-2">
-            ✅ Query Results
-          </h3>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>
-              {result.iterations} iteration{result.iterations !== 1 ? 's' : ''}
-            </span>
-            <span>{result.execution_time_ms}ms</span>
-            <span className="text-green-400/80 font-medium">
-              {result.rows} row{result.rows !== 1 ? 's' : ''}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Query display */}
-      <div className="px-6 py-4 border-b border-gray-800/30">
-        <p className="text-xs text-gray-500 font-medium mb-2">Final HogQL Query</p>
-        <pre className="bg-gray-950 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto whitespace-pre-wrap border border-gray-800/50">
-          {result.query}
-        </pre>
-
-        {result.reasoning && (
-          <div className="mt-3">
-            <p className="text-xs text-gray-500 font-medium mb-1">Reasoning</p>
-            <p className="text-sm text-gray-300">{result.reasoning}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Data table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+    <div className="w-full overflow-hidden rounded-xl border border-white/5 bg-black/20">
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-white/10">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-gray-800/50">
+            <tr className="bg-white/5 border-b border-white/10">
               {result.columns.map((col) => (
                 <th
                   key={col}
-                  className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider bg-gray-900/50"
+                  className="px-4 py-2.5 text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap"
                 >
                   {col}
                 </th>
@@ -56,24 +34,27 @@ export function ResultsTable({ result }: ResultsTableProps) {
             </tr>
           </thead>
           <tbody>
-            {result.data.slice(0, 100).map((row, rowIndex) => (
+            {result.data.slice(0, 50).map((row, rowIndex) => (
               <tr
                 key={rowIndex}
-                className="border-b border-gray-800/20 hover:bg-gray-800/30 transition-colors duration-100 even:bg-gray-800/10"
+                className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group"
               >
                 {result.columns.map((col) => {
                   const value = row[col];
-                  const displayValue = value === null || value === undefined
-                    ? '—'
-                    : String(value);
                   const isNumeric = typeof value === 'number';
+                  const displayValue = value === null || value === undefined
+                    ? <span className="text-gray-700">—</span>
+                    : isNumeric 
+                      ? value.toLocaleString()
+                      : String(value);
 
                   return (
                     <td
                       key={col}
-                      className={`px-4 py-2.5 text-sm font-mono ${
-                        isNumeric ? 'text-indigo-300 text-right' : 'text-gray-300'
-                      }`}
+                      className={cn(
+                        "px-4 py-2 text-[11px] font-mono whitespace-nowrap",
+                        isNumeric ? "text-indigo-400 text-right" : "text-gray-400 group-hover:text-gray-300"
+                      )}
                     >
                       {displayValue}
                     </td>
@@ -84,13 +65,14 @@ export function ResultsTable({ result }: ResultsTableProps) {
           </tbody>
         </table>
       </div>
-
-      {/* Row count */}
-      <div className="px-6 py-3 border-t border-gray-800/50 bg-gray-900/50">
-        <p className="text-xs text-gray-600">
-          Showing {Math.min(result.data.length, 100)} of {result.rows} row{result.rows !== 1 ? 's' : ''}
-        </p>
-      </div>
+      
+      {result.rows > 50 && (
+        <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex justify-center">
+          <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">
+            Showing first 50 of {result.rows.toLocaleString()} rows
+          </span>
+        </div>
+      )}
     </div>
   );
 }

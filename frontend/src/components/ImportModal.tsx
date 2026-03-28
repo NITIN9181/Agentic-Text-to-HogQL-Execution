@@ -19,7 +19,17 @@ export const ImportModal: React.FC<ImportModalProps> = ({ isOpen, onClose, onSuc
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      
+      // Check file size (10MB limit)
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setStatus({ type: 'error', message: 'File size exceeds 10MB limit. Please upload a smaller file.' });
+        setFile(null);
+        return;
+      }
+
       setFile(selectedFile);
+      setStatus(null); // Clear any previous errors
+      
       // Auto-generate table name if empty
       if (!tableName) {
         const name = selectedFile.name.split('.')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_');

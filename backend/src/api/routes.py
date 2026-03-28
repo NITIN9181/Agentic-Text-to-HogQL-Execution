@@ -110,8 +110,14 @@ async def upload_data(
     table_name: str = Form(None)
 ) -> dict:
     """Upload a CSV or Excel file to ClickHouse."""
-    uploader = _get_uploader()
+    # 10MB limit (10 * 1024 * 1024 bytes)
+    MAX_FILE_SIZE = 10485760
+    
     content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail="File size exceeds 10MB limit.")
+        
+    uploader = _get_uploader()
     result = await uploader.upload_file(content, file.filename, table_name)
     
     if result["status"] == "error":

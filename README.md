@@ -120,4 +120,4 @@ agentic-hogql/
 ---
 
 ## 📄 License
-MIT © [NITIN9181](https://github.com/NITIN9181)
+MIT © [Nitin Savio Bada](https://github.com/NITIN9181)

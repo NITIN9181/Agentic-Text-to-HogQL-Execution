@@ -25,6 +25,12 @@ The system is pre-configured with the specific syntax rules and functions for Po
 ### 4. **Production Data Persistence**
 Includes a local ClickHouse (v23.12) instance initialized with **10,000+ mock records** (events, persons, sessions). Data is stored in a named Docker volume (`clickhouse_data`), ensuring your work persists across restarts.
 
+### 5. **Custom Data Import (New!)**
+Upload your own datasets and analyze them instantly. The system now supports:
+- **Formats**: CSV and Excel (.xlsx, .xls) uploads.
+- **Auto-Schema Inference**: Uses **Pandas** to detect column types (Int, Float, DateTime, String) and automatically creates the corresponding ClickHouse table.
+- **Scale**: Optimized for datasets up to **10MB** with real-time indexing.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -33,6 +39,7 @@ Includes a local ClickHouse (v23.12) instance initialized with **10,000+ mock re
 - **Backend**: Python 3.11 + FastAPI (Asynchronous execution)
 - **Database**: ClickHouse (Distributed, OLAP storage)
 - **Frontend**: React 18 + Vite + Tailwind CSS (Premium Dark Mode)
+- **Data Engine**: Pandas (for schema inference and cleanup)
 - **Streaming**: Server-Sent Events (SSE) for low-latency feedback
 
 ---
@@ -121,7 +128,7 @@ rs for the past month" | Counts distinct users per day |
 | Streaming | Server-Sent Events (SSE) |
 | Infrastructure | Docker Compose |
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 agentic-hogql/
@@ -141,9 +148,10 @@ agentic-hogql/
 │       │   └── prompts.py      # System prompt with HogQL rules
 │       ├── database/
 │       │   ├── clickhouse_executor.py  # Read-only query execution
-│       │   └── schema_inspector.py     # Table/column discovery
+│       │   ├── schema_inspector.py     # Table/column discovery
+│       │   └── data_uploader.py        # NEW: CSV/Excel import logic
 │       ├── api/
-│       │   └── routes.py       # SSE streaming endpoint
+│       │   └── routes.py       # SSE streaming & Upload endpoints
 │       └── tests/
 │           ├── test_agent.py
 │           └── test_clickhouse.py
@@ -156,13 +164,25 @@ agentic-hogql/
         ├── hooks/
         │   └── useQueryStream.ts   # SSE connection hook
         └── components/
-            ├── Layout.tsx
+            ├── Layout.tsx      # Main wrapper with Import trigger
+            ├── ImportModal.tsx # NEW: Data upload modal component
             ├── QueryInput.tsx
             ├── AgentStream.tsx
             ├── EventCard.tsx
             └── ResultsTable.tsx
 ```
 
-## License
+---
 
-MIT
+## 🔍 Example Queries (Custom Data)
+
+Once you've uploaded your own CSV/Excel file, try these:
+- *"What are the total sales figures in the 'uploaded_sales_data' table?"*
+- *"Find the top 10 customers by revenue in our custom dataset."*
+- *"Show me the monthly trend of active users from the custom table."*
+
+---
+
+## 📄 License
+
+MIT © [NITIN9181](https://github.com/NITIN9181)

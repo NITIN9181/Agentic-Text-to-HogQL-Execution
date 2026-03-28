@@ -2,13 +2,14 @@ import json
 import logging
 from typing import AsyncGenerator
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agent.executor import HogQLAgent
 from src.config import settings
 from src.database.clickhouse_executor import ClickHouseExecutor
+from src.database.data_uploader import ClickHouseUploader
 from src.database.schema_inspector import SchemaInspector
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,15 @@ class QueryRequest(BaseModel):
 def _get_executor() -> ClickHouseExecutor:
     """Create a ClickHouseExecutor instance from settings."""
     return ClickHouseExecutor(
+        host=settings.clickhouse_host,
+        port=settings.clickhouse_port,
+        database=settings.clickhouse_database,
+    )
+
+
+def _get_uploader() -> ClickHouseUploader:
+    """Create a ClickHouseUploader instance from settings."""
+    return ClickHouseUploader(
         host=settings.clickhouse_host,
         port=settings.clickhouse_port,
         database=settings.clickhouse_database,
@@ -92,6 +102,30 @@ async def get_table_schema(table_name: str) -> dict:
         return schema
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/api/data/upload")
+async def upload_data(
+    file: UploadFile = File(...),
+    table_name: str = Form(None)
+) -> dict:
+    """Upload a CSV or Excel file to ClickHouse."""
+    uploader = _get_uploader()
+    content = await file.read()
+    result = await uploader.upload_file(content, file.filename, table_name)
+    
+    if result["status"] == "error":
+        raise HTTPException(status_code=400, detail=result["message"])
+    
+    return result
+
+
+@router.delete("/api/data/tables/{table_name}")
+async def delete_table(table_name: str) -> dict:
+    """Delete a custom table."""
+    uploader = _get_uploader()
+    uploader.drop_table(table_name)
+    return {"status": "success", "message": f"Table {table_name} deleted."}
 
 
 @router.get("/api/health")
